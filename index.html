@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Grumpy Bunny</title>
+<meta name="description" content="A calm-down game for kids. Stomp it out, then breathe it down.">
+<meta name="theme-color" content="#231a3c">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#128048;</text></svg>">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="stage" id="stage">
+
+  <!-- ============ THE BUNNY ============ -->
+  <div class="bunny-wrap" id="bunnyWrap" aria-hidden="true">
+    <svg class="bunny" id="bunny" viewBox="0 0 200 230" data-mood="grumpy">
+      <g class="b-ears">
+        <g class="b-ear b-ear-l">
+          <ellipse cx="70" cy="42" rx="15" ry="40" fill="var(--fur)"/>
+          <ellipse cx="70" cy="46" rx="7" ry="29" fill="var(--fur-in)"/>
+        </g>
+        <g class="b-ear b-ear-r">
+          <ellipse cx="130" cy="42" rx="15" ry="40" fill="var(--fur)"/>
+          <ellipse cx="130" cy="46" rx="7" ry="29" fill="var(--fur-in)"/>
+        </g>
+      </g>
+      <ellipse class="b-foot b-foot-l" cx="62" cy="196" rx="27" ry="17" fill="var(--fur-dk)"/>
+      <ellipse class="b-foot b-foot-r" cx="138" cy="196" rx="27" ry="17" fill="var(--fur-dk)"/>
+      <ellipse class="b-arm b-arm-l" cx="38" cy="140" rx="14" ry="24" fill="var(--fur-dk)"/>
+      <ellipse class="b-arm b-arm-r" cx="162" cy="140" rx="14" ry="24" fill="var(--fur-dk)"/>
+      <ellipse class="b-body" cx="100" cy="130" rx="66" ry="62" fill="var(--fur)"/>
+      <ellipse class="b-belly" id="belly" cx="100" cy="148" rx="42" ry="34" fill="var(--fur-lt)"/>
+      <g class="b-face">
+        <ellipse cx="76" cy="118" rx="12" ry="13" fill="#fff"/>
+        <ellipse cx="124" cy="118" rx="12" ry="13" fill="#fff"/>
+        <circle class="b-pupil" cx="76" cy="120" r="6" fill="#2b1b3d"/>
+        <circle class="b-pupil" cx="124" cy="120" r="6" fill="#2b1b3d"/>
+        <g class="b-brows">
+          <path d="M62 100 L92 110" stroke="#2b1b3d" stroke-width="7" stroke-linecap="round"/>
+          <path d="M138 100 L108 110" stroke="#2b1b3d" stroke-width="7" stroke-linecap="round"/>
+        </g>
+        <ellipse class="b-nose" cx="100" cy="136" rx="7" ry="5" fill="#e2809a"/>
+        <g class="m m-grr">
+          <path d="M84 152 L92 146 L100 152 L108 146 L116 152" stroke="#2b1b3d" stroke-width="6" stroke-linecap="round" fill="none"/>
+          <path d="M88 153 L91 161 L94 153 Z" fill="#fff"/>
+          <path d="M106 153 L109 161 L112 153 Z" fill="#fff"/>
+        </g>
+        <g class="m m-pant">
+          <ellipse cx="100" cy="154" rx="13" ry="10" fill="#2b1b3d"/>
+          <ellipse cx="100" cy="159" rx="8" ry="5" fill="#e2809a"/>
+        </g>
+        <g class="m m-calm">
+          <path d="M86 150 Q100 162 114 150" stroke="#2b1b3d" stroke-width="6" stroke-linecap="round" fill="none"/>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <!-- ============ SCREENS ============ -->
+
+  <section class="screen is-on" id="s-start">
+    <h1 class="title">Grumpy<br><span>Bunny</span></h1>
+    <p class="lede">Got a big feeling? Let's make it smaller together.</p>
+    <button class="btn btn-big" data-go="s-size">I feel GRRRR!</button>
+    <button class="btn btn-ghost btn-sm" data-go="s-grownups">For grown‑ups</button>
+  </section>
+
+  <section class="screen" id="s-size">
+    <h2 class="ask">How big is the feeling?</h2>
+    <div class="cards">
+      <button class="card" data-size="grumbly"><span class="card-emo">😒</span><span class="card-lbl">Grumbly</span><span class="card-sub">a little bit mad</span></button>
+      <button class="card" data-size="steaming"><span class="card-emo">😤</span><span class="card-lbl">Steaming</span><span class="card-sub">pretty mad</span></button>
+      <button class="card" data-size="volcano"><span class="card-emo">🌋</span><span class="card-lbl">Volcano</span><span class="card-sub">SO mad</span></button>
+    </div>
+  </section>
+
+  <section class="screen" id="s-why">
+    <h2 class="ask">What happened?</h2>
+    <p class="hint">You don't have to say. Naming it helps, though.</p>
+    <div class="chips" id="whyChips">
+      <button class="chip" data-why="no">Someone said no</button>
+      <button class="chip" data-why="unfair">It's not fair</button>
+      <button class="chip" data-why="hard">It's too hard</button>
+      <button class="chip" data-why="left">I got left out</button>
+      <button class="chip" data-why="tired">I'm tired or hungry</button>
+      <button class="chip" data-why="secret">I'd rather not say</button>
+    </div>
+  </section>
+
+  <section class="screen screen-wide" id="s-stomp">
+    <div class="hud">
+      <div class="hud-lbl">Bunny's stompy energy</div>
+      <div class="meter"><div class="meter-fill" id="meterFill"></div></div>
+    </div>
+    <p class="coach" id="stompCoach">STOMP THE ROCKS!</p>
+    <div class="arena" id="arena"></div>
+    <button class="btn btn-ghost btn-sm" id="skipStomp">I'm ready to calm down →</button>
+  </section>
+
+  <section class="screen" id="s-breathe">
+    <h2 class="ask">Bunny is all puffed out.</h2>
+    <p class="hint">Breathe with Bunny. Watch the tummy.</p>
+    <div class="breath-ring" id="breathRing"><span id="breathWord">Ready…</span></div>
+    <p class="rounds" id="breathRounds">Breath 1 of 4</p>
+  </section>
+
+  <section class="screen" id="s-squeeze">
+    <h2 class="ask" id="squeezeAsk">Squeeze everything tight!</h2>
+    <p class="hint">Fists, toes, shoulders — squeeze… then let it all flop.</p>
+    <div class="squeeze-orb" id="squeezeOrb"></div>
+    <p class="rounds" id="squeezeRounds">Squeeze 1 of 2</p>
+  </section>
+
+  <section class="screen" id="s-plan">
+    <h2 class="ask">What would help right now?</h2>
+    <div class="chips" id="planChips">
+      <button class="chip" data-plan="help">Ask for help</button>
+      <button class="chip" data-plan="space">Have a quiet minute</button>
+      <button class="chip" data-plan="water">Drink some water</button>
+      <button class="chip" data-plan="tell">Tell someone what happened</button>
+      <button class="chip" data-plan="again">Try it again</button>
+      <button class="chip" data-plan="hug">Get a big hug</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s-done">
+    <h2 class="ask" id="doneTitle">You did it.</h2>
+    <p class="lede" id="donePlan"></p>
+    <div class="badge" id="badge"><span id="badgeCount">1</span><small>calm‑downs</small></div>
+    <button class="btn btn-big" data-go="s-start">All done</button>
+    <button class="btn btn-ghost btn-sm" id="oneMore">I need one more round</button>
+  </section>
+
+  <section class="screen screen-read" id="s-grownups">
+    <h2 class="ask">For grown‑ups</h2>
+    <div class="prose">
+      <p><strong>This is not a rage room.</strong> "Venting" anger is one of the most reliably
+      disproven ideas in psychology — hitting something while stewing about who upset you tends to
+      leave people <em>angrier</em> and more aggressive than doing nothing at all.</p>
+      <p>So the stomping here is only bait. It's short, it's timed, it can't be replayed on its own,
+      nothing resembling a person is ever a target, and there is deliberately <strong>no score for
+      smashing</strong>. Then Bunny gets tired and the real part starts: naming the feeling, paced
+      breathing, muscle release, and picking one next move.</p>
+      <p><strong>The best thing you can do is do it with them.</strong> Kids borrow a calm nervous
+      system before they build their own. Sit down, breathe along with the ring, be boring and steady.
+      Afterwards, don't debrief the meltdown — just follow through on whatever they picked on the last
+      screen.</p>
+      <p class="fine">Everything stays on this device. No accounts, no ads, no tracking, nothing sent
+      anywhere. If a child's anger is hurting them or others, happening most days, or not improving,
+      that's worth a conversation with your pediatrician — approaches like PCIT, parent management
+      training, and child CBT have strong evidence behind them, and a game is not one of them.</p>
+    </div>
+    <button class="btn btn-big" data-go="s-start">Back</button>
+  </section>
+
+  <button class="sound-toggle" id="soundToggle" aria-pressed="false" title="Sound">🔇</button>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
