@@ -1,0 +1,194 @@
+/* ---------- tokens ---------- */
+:root{
+  --bg1:#231a3c; --bg2:#3d2a5e;
+  --ink:#fdf6ff; --ink-dim:#c3b2dd;
+  --hot:#ff6b57; --hot-dk:#c9412f;
+  --calm:#5fd6a5; --sun:#ffcf5c;
+  --fur:#cdbde8; --fur-lt:#e6dcf6; --fur-dk:#b3a0d4; --fur-in:#e88fa8;
+  --card:rgba(255,255,255,.08); --card-br:rgba(255,255,255,.18);
+  --tap:60px;
+}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:"Baloo 2",ui-rounded,"Trebuchet MS","Segoe UI",system-ui,sans-serif;
+  color:var(--ink);
+  background:radial-gradient(120% 90% at 50% 0%,var(--bg2),var(--bg1));
+  overflow:hidden; user-select:none; touch-action:manipulation;
+}
+/* mood tint drifts hot -> calm across the arc */
+body::after{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background:radial-gradient(80% 60% at 50% 100%,var(--tint,transparent),transparent 70%);
+  transition:background 1.2s ease;
+}
+body[data-tint="hot"]{--tint:rgba(255,107,87,.38)}
+body[data-tint="calm"]{--tint:rgba(95,214,165,.30)}
+
+/* ---------- stage / screens ---------- */
+.stage{position:relative;height:100%;display:grid;place-items:center;padding:max(18px,env(safe-area-inset-top)) 18px 26px}
+.screen{
+  position:absolute;inset:0;margin:0 auto;z-index:2;
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  width:100%;max-width:560px;text-align:center;padding:0 18px;
+}
+/* each screen reserves the vertical band its bunny occupies, so nothing overlaps */
+#s-start{padding-bottom:30vh}
+#s-done{padding-bottom:36vh}
+#s-size,#s-why,#s-breathe,#s-squeeze,#s-plan{padding-bottom:15vh}
+.screen.is-on{display:flex;animation:rise .38s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}}
+.screen-wide{max-width:900px;justify-content:flex-start;gap:10px;padding-top:58px}
+.screen-read{max-width:620px}
+
+/* ---------- type ---------- */
+.title{font-size:clamp(44px,13vw,86px);line-height:.92;font-weight:800;letter-spacing:-.02em;text-shadow:0 4px 0 rgba(0,0,0,.3)}
+.title span{color:var(--sun)}
+.ask{font-size:clamp(24px,6.4vw,38px);font-weight:800;line-height:1.12;text-wrap:balance}
+.lede{font-size:clamp(16px,4.4vw,20px);color:var(--ink-dim);max-width:24ch;text-wrap:balance}
+.hint{font-size:15px;color:var(--ink-dim)}
+.rounds{font-size:16px;color:var(--ink-dim);font-weight:700;letter-spacing:.06em}
+.coach{font-size:clamp(20px,6vw,30px);font-weight:800;color:var(--sun);text-shadow:0 3px 0 rgba(0,0,0,.25)}
+
+/* ---------- buttons ---------- */
+.btn{
+  font:inherit;font-weight:800;cursor:pointer;border:0;color:#3a1d16;
+  background:linear-gradient(#ffd98a,var(--sun));
+  padding:16px 34px;border-radius:999px;font-size:clamp(18px,5vw,22px);
+  box-shadow:0 6px 0 #c99a2c,0 12px 22px rgba(0,0,0,.3);
+  min-height:var(--tap);transition:transform .1s,box-shadow .1s;
+}
+.btn:active{transform:translateY(5px);box-shadow:0 1px 0 #c99a2c}
+.btn-big{padding:20px 44px}
+.btn-ghost{background:none;color:var(--ink-dim);box-shadow:none;border:2px solid var(--card-br);font-weight:700}
+.btn-ghost:active{transform:translateY(2px);box-shadow:none}
+.btn-sm{font-size:15px;padding:11px 20px;min-height:44px}
+:focus-visible{outline:4px solid var(--sun);outline-offset:3px}
+
+/* ---------- feeling-size cards ---------- */
+.cards{display:flex;gap:10px;flex-wrap:nowrap;justify-content:center;width:100%}
+.card{
+  font:inherit;cursor:pointer;color:var(--ink);flex:1 1 88px;max-width:170px;
+  background:var(--card);border:2px solid var(--card-br);border-radius:22px;
+  padding:14px 6px;display:flex;flex-direction:column;gap:2px;align-items:center;
+  transition:transform .12s,background .12s;
+}
+.card:active{transform:scale(.95);background:rgba(255,255,255,.16)}
+.card-emo{font-size:clamp(30px,8vw,40px);line-height:1}
+.card-lbl{font-weight:800;font-size:clamp(15px,4.4vw,19px)}
+.card-sub{font-size:clamp(11px,3vw,13px);color:var(--ink-dim);text-wrap:balance}
+
+/* ---------- chips ---------- */
+.chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.chip{
+  font:inherit;font-weight:700;font-size:16px;cursor:pointer;color:var(--ink);
+  background:var(--card);border:2px solid var(--card-br);border-radius:999px;
+  padding:13px 20px;min-height:50px;transition:transform .12s,background .12s;
+}
+.chip:active{transform:scale(.94);background:rgba(255,255,255,.18)}
+.chip.picked{background:var(--calm);border-color:var(--calm);color:#0f3a2a}
+
+/* ---------- bunny ---------- */
+.bunny-wrap{position:absolute;left:50%;bottom:8%;translate:-50% 0;z-index:1;pointer-events:none;
+  width:min(58vw,260px);transition:bottom .5s ease,width .5s ease,opacity .4s}
+.bunny{width:100%;height:auto;overflow:visible;filter:drop-shadow(0 14px 18px rgba(0,0,0,.35))}
+.bunny-wrap.hide{opacity:0}
+.bunny-wrap.center{bottom:26%}
+.bunny-wrap.stomping{width:min(40vw,168px);bottom:3%}
+.bunny-wrap.pooped{width:min(40vw,168px);bottom:3%}
+.bunny .m{display:none}
+.bunny[data-mood="grumpy"] .m-grr{display:block}
+.bunny[data-mood="tired"]  .m-pant{display:block}
+.bunny[data-mood="calm"]   .m-calm{display:block}
+.bunny[data-mood="calm"] .b-brows{transform:translateY(8px) scaleY(.25);opacity:0}
+.bunny[data-mood="tired"] .b-brows{transform:translateY(5px)}
+.bunny .b-brows{transition:transform .5s,opacity .5s;transform-origin:100px 105px}
+.bunny .b-ear-l{transform-origin:70px 78px;animation:earL 2.6s ease-in-out infinite}
+.bunny .b-ear-r{transform-origin:130px 78px;animation:earR 2.9s ease-in-out infinite}
+@keyframes earL{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+@keyframes earR{0%,100%{transform:rotate(5deg)}50%{transform:rotate(-3deg)}}
+.bunny-wrap.stomping{animation:stompBob .42s ease-in-out infinite}
+@keyframes stompBob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-14px) rotate(2deg)}}
+.bunny-wrap.pooped{animation:pant 2.2s ease-in-out infinite}
+@keyframes pant{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(2px) scale(.985)}}
+.b-belly{transform-box:fill-box;transform-origin:center;transition:transform .1s linear}
+.b-arm-l{transform-origin:38px 120px}.b-arm-r{transform-origin:162px 120px}
+.bunny-wrap.stomping .b-arm-l{animation:armL .42s ease-in-out infinite}
+.bunny-wrap.stomping .b-arm-r{animation:armR .42s ease-in-out infinite}
+@keyframes armL{0%,100%{transform:rotate(18deg)}50%{transform:rotate(-24deg)}}
+@keyframes armR{0%,100%{transform:rotate(-18deg)}50%{transform:rotate(24deg)}}
+
+/* ---------- stomp arena ---------- */
+.hud{width:100%;max-width:460px;display:flex;flex-direction:column;gap:6px;align-items:center;z-index:4}
+.hud-lbl{font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim)}
+.meter{width:100%;height:20px;border-radius:999px;background:rgba(0,0,0,.35);border:2px solid var(--card-br);overflow:hidden}
+.meter-fill{height:100%;width:100%;border-radius:999px;background:linear-gradient(90deg,var(--hot-dk),var(--hot),var(--sun));transition:width .12s linear}
+.arena{position:relative;flex:1;width:100%;min-height:40vh;z-index:3}
+#skipStomp{position:absolute;right:16px;bottom:14px;z-index:6;
+  background:rgba(35,26,60,.72);backdrop-filter:blur(6px)}
+.rock{
+  position:absolute;width:74px;height:74px;padding:0;border:0;background:none;cursor:pointer;
+  animation:rockIn .22s cubic-bezier(.2,1.6,.4,1) both;
+}
+.rock svg{width:100%;height:100%;filter:drop-shadow(0 5px 8px rgba(0,0,0,.4))}
+@keyframes rockIn{from{transform:scale(0) rotate(-40deg)}}
+.rock.gone{animation:rockOut .3s ease-out forwards;pointer-events:none}
+@keyframes rockOut{to{transform:scale(1.7) rotate(20deg);opacity:0}}
+.shard{position:absolute;width:12px;height:12px;border-radius:3px;background:var(--sun);pointer-events:none;
+  animation:shard .55s ease-out forwards}
+@keyframes shard{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
+.stage.shake{animation:shake .18s}
+@keyframes shake{25%{transform:translate(5px,-3px)}75%{transform:translate(-5px,3px)}}
+
+/* ---------- breathing ---------- */
+.breath-ring{
+  width:min(56vw,230px);aspect-ratio:1;border-radius:50%;
+  display:grid;place-items:center;font-size:clamp(20px,5.5vw,26px);font-weight:800;
+  border:8px solid var(--calm);background:radial-gradient(circle,rgba(95,214,165,.28),transparent 70%);
+  box-shadow:0 0 40px rgba(95,214,165,.35);transform:scale(.62);
+  transition:transform .1s linear;z-index:3;
+}
+/* ---------- squeeze ---------- */
+.squeeze-orb{
+  width:min(46vw,190px);aspect-ratio:1;border-radius:46% 54% 52% 48%;z-index:3;
+  background:radial-gradient(circle at 34% 30%,#fff6,transparent 55%),linear-gradient(160deg,var(--sun),var(--hot));
+  box-shadow:0 10px 30px rgba(0,0,0,.35);transition:transform .25s ease,filter .25s;
+}
+.squeeze-orb.tight{transform:scale(.6) rotate(-8deg);filter:saturate(1.5)}
+.squeeze-orb.loose{transform:scale(1.12) rotate(6deg);filter:saturate(.7)}
+
+/* ---------- done ---------- */
+.badge{
+  display:grid;place-items:center;width:130px;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#fff8,transparent 60%),linear-gradient(160deg,var(--calm),#2f9c74);
+  color:#0d3527;font-weight:800;box-shadow:0 8px 0 #24775a,0 16px 30px rgba(0,0,0,.35);
+}
+.badge span{font-size:48px;line-height:1}
+.badge small{font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+
+/* ---------- grown-ups ---------- */
+.prose{text-align:left;max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  display:flex;flex-direction:column;gap:12px;font-size:16px;line-height:1.55;color:#e8dff7;
+  padding-bottom:10px;
+  /* fade the last line so it reads as scrollable rather than clipped */
+  mask-image:linear-gradient(to bottom,#000 calc(100% - 34px),transparent);
+  -webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 34px),transparent)}
+.prose strong{color:var(--sun)}
+.prose .fine{font-size:14px;color:var(--ink-dim);border-top:1px solid var(--card-br);padding-top:12px}
+
+/* ---------- sound ---------- */
+.sound-toggle{position:fixed;top:max(12px,env(safe-area-inset-top));right:12px;z-index:9;
+  width:46px;height:46px;border-radius:50%;border:2px solid var(--card-br);background:var(--card);
+  font-size:20px;cursor:pointer;color:var(--ink)}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::after{animation-duration:.001s!important;animation-iteration-count:1!important}
+  .stage.shake{animation:none}
+}
+@media (max-height:560px){
+  .bunny-wrap{width:min(34vw,150px)}
+  .title{font-size:clamp(34px,9vw,54px)}
+}
+
+/* bunny size variants per screen */
+.bunny-wrap.small{width:min(30vw,132px);bottom:2%}
