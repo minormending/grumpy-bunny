@@ -61,13 +61,13 @@
 
   <section class="screen is-on" id="s-start">
     <h1 class="title">Grumpy<br><span>Bunny</span></h1>
-    <p class="lede">Got a big feeling? Let's make it smaller together.</p>
+    <p class="lede" data-short="Got a big feeling?">Got a big feeling? Let's make it smaller together.</p>
     <button class="btn btn-big" data-go="s-size">I feel GRRRR!</button>
     <button class="btn btn-ghost btn-sm" data-go="s-grownups">For grown‑ups</button>
   </section>
 
   <section class="screen" id="s-size">
-    <h2 class="ask">How big is the feeling?</h2>
+    <h2 class="ask" data-short="How big?">How big is the feeling?</h2>
     <div class="cards">
       <button class="card" data-size="grumbly"><span class="card-emo">😒</span><span class="card-lbl">Grumbly</span><span class="card-sub">a little bit mad</span></button>
       <button class="card" data-size="steaming"><span class="card-emo">😤</span><span class="card-lbl">Steaming</span><span class="card-sub">pretty mad</span></button>
@@ -77,14 +77,14 @@
 
   <section class="screen" id="s-why">
     <h2 class="ask">What happened?</h2>
-    <p class="hint">You don't have to say. Naming it helps, though.</p>
+    <p class="hint" data-short="">You don't have to say. Naming it helps, though.</p>
     <div class="chips" id="whyChips">
-      <button class="chip" data-why="no">Someone said no</button>
-      <button class="chip" data-why="unfair">It's not fair</button>
-      <button class="chip" data-why="hard">It's too hard</button>
-      <button class="chip" data-why="left">I got left out</button>
-      <button class="chip" data-why="tired">I'm tired or hungry</button>
-      <button class="chip" data-why="secret">I'd rather not say</button>
+      <button class="chip" data-why="no"><span class="chip-i">🙅</span><span class="chip-t">Someone said no</span></button>
+      <button class="chip" data-why="unfair"><span class="chip-i">⚖️</span><span class="chip-t">It's not fair</span></button>
+      <button class="chip" data-why="hard"><span class="chip-i">🧩</span><span class="chip-t">It's too hard</span></button>
+      <button class="chip" data-why="left"><span class="chip-i">😢</span><span class="chip-t">I got left out</span></button>
+      <button class="chip" data-why="tired"><span class="chip-i">🥱</span><span class="chip-t">I'm tired or hungry</span></button>
+      <button class="chip" data-why="secret"><span class="chip-i">🤐</span><span class="chip-t">I'd rather not say</span></button>
     </div>
   </section>
 
@@ -99,28 +99,28 @@
   </section>
 
   <section class="screen" id="s-breathe">
-    <h2 class="ask">Bunny is all puffed out.</h2>
-    <p class="hint">Breathe with Bunny. Watch the tummy.</p>
-    <div class="breath-ring" id="breathRing"><span id="breathWord">Ready…</span></div>
+    <h2 class="ask" data-short="Breathe with Bunny">Bunny is all puffed out.</h2>
+    <p class="hint" data-short="">Breathe with Bunny. Watch the tummy.</p>
+    <div class="breath-ring" id="breathRing"><span class="breath-arrow" id="breathArrow"></span><span id="breathWord"></span></div>
     <p class="rounds" id="breathRounds">Breath 1 of 4</p>
   </section>
 
   <section class="screen" id="s-squeeze">
     <h2 class="ask" id="squeezeAsk">Squeeze everything tight!</h2>
-    <p class="hint">Fists, toes, shoulders — squeeze… then let it all flop.</p>
+    <p class="hint" data-short="">Fists, toes, shoulders — squeeze… then let it all flop.</p>
     <div class="squeeze-orb" id="squeezeOrb"></div>
     <p class="rounds" id="squeezeRounds">Squeeze 1 of 2</p>
   </section>
 
   <section class="screen" id="s-plan">
-    <h2 class="ask">What would help right now?</h2>
+    <h2 class="ask" data-short="What helps?">What would help right now?</h2>
     <div class="chips" id="planChips">
-      <button class="chip" data-plan="help">Ask for help</button>
-      <button class="chip" data-plan="space">Have a quiet minute</button>
-      <button class="chip" data-plan="water">Drink some water</button>
-      <button class="chip" data-plan="tell">Tell someone what happened</button>
-      <button class="chip" data-plan="again">Try it again</button>
-      <button class="chip" data-plan="hug">Get a big hug</button>
+      <button class="chip" data-plan="help"><span class="chip-i">🙋</span><span class="chip-t">Ask for help</span></button>
+      <button class="chip" data-plan="space"><span class="chip-i">🤫</span><span class="chip-t">Have a quiet minute</span></button>
+      <button class="chip" data-plan="water"><span class="chip-i">💧</span><span class="chip-t">Drink some water</span></button>
+      <button class="chip" data-plan="tell"><span class="chip-i">🗣️</span><span class="chip-t">Tell someone what happened</span></button>
+      <button class="chip" data-plan="again"><span class="chip-i">🔄</span><span class="chip-t">Try it again</span></button>
+      <button class="chip" data-plan="hug"><span class="chip-i">🤗</span><span class="chip-t">Get a big hug</span></button>
     </div>
   </section>
 
@@ -151,10 +151,49 @@
       that's worth a conversation with your pediatrician — approaches like PCIT, parent management
       training, and child CBT have strong evidence behind them, and a game is not one of them.</p>
     </div>
-    <button class="btn btn-big" data-go="s-start">Back</button>
+    <div class="row">
+      <button class="btn btn-sm" id="openSettings">⚙️ Settings</button>
+      <button class="btn btn-big" data-go="s-start">Back</button>
+    </div>
   </section>
 
-  <button class="sound-toggle" id="soundToggle" aria-pressed="false" title="Sound">🔇</button>
+  <!-- press-and-hold, so a child poking at the screen can't wander into it -->
+  <button class="gear" id="gear" aria-label="Grown-up settings — press and hold">⚙️</button>
+
+  <div class="sheet" id="sheet" hidden>
+    <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+      <h2 id="sheetTitle">Grown-up settings</h2>
+
+      <label class="sw">
+        <input type="checkbox" id="optPrereader">
+        <span class="sw-box" aria-hidden="true"></span>
+        <span class="sw-txt"><b>Pre-reader mode</b>
+          <small>Big pictures, fewer words. For kids who can't read yet.</small></span>
+      </label>
+
+      <label class="sw" id="voiceRow">
+        <input type="checkbox" id="optVoice">
+        <span class="sw-box" aria-hidden="true"></span>
+        <span class="sw-txt"><b>Read the prompts aloud</b>
+          <small>A slow, calm voice. Stays quiet through the stomping on purpose.</small></span>
+      </label>
+
+      <label class="sw">
+        <input type="checkbox" id="optSfx">
+        <span class="sw-box" aria-hidden="true"></span>
+        <span class="sw-txt"><b>Stomp sounds</b>
+          <small>A thump when a rock breaks.</small></span>
+      </label>
+
+      <button class="btn btn-sm" id="testVoice">🔊 Hear the voice</button>
+
+      <p class="fine" id="voiceNote">If your child is sensitive to sound, leave the voice off — the
+      pictures carry the whole thing on their own. A voice they didn't expect can make a meltdown
+      bigger, and your own voice regulates them better than any device does.</p>
+
+      <button class="btn" id="sheetClose">Done</button>
+    </div>
+  </div>
 </div>
 <script src="app.js"></script>
 </body>
