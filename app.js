@@ -40,6 +40,7 @@
     token++;
     clearTimers();
     $$('.screen').forEach((s) => s.classList.toggle('is-on', s.id === id));
+    $$('.chip.picked').forEach((c) => c.classList.remove('picked'));  /* no stale selection next round */
     const b = BUNNY_BY_SCREEN[id] || { mood: 'grumpy', cls: '' };
     bunnyWrap.className = 'bunny-wrap ' + b.cls;
     bunny.dataset.mood = b.mood;
@@ -47,24 +48,82 @@
     document.body.dataset.tint =
       id === 's-stomp' ? 'hot' :
       (id === 's-breathe' || id === 's-squeeze' || id === 's-plan' || id === 's-done') ? 'calm' : '';
+    shush();
+    if (SPOKEN[id]) later(() => say(SPOKEN[id], $('#' + id + ' .ask')), 420);
     if (id === 's-stomp') runStomp();
     if (id === 's-breathe') runBreathe();
     if (id === 's-squeeze') runSqueeze();
     if (id === 's-done') runDone();
   }
 
-  /* ---------------- sound (off by default, no assets) ---------------- */
-  let ac = null, soundOn = false;
-  const toggle = $('#soundToggle');
-  toggle.addEventListener('click', () => {
-    soundOn = !soundOn;
-    toggle.textContent = soundOn ? '🔊' : '🔇';
-    toggle.setAttribute('aria-pressed', String(soundOn));
-    if (soundOn && !ac) ac = new (window.AudioContext || window.webkitAudioContext)();
-    if (soundOn) beep(180, 0.08, 'sine', 0.12);
-  });
+  /* ---------------- grown-up settings ---------------- */
+  const DEFAULTS = { prereader: false, voice: false, sfx: false };
+  const S = Object.assign({}, DEFAULTS);
+  try { Object.assign(S, JSON.parse(localStorage.getItem('gb.settings') || '{}')); } catch (e) { /* ignore */ }
+  const saveSettings = () => { try { localStorage.setItem('gb.settings', JSON.stringify(S)); } catch (e) {} };
+
+  const canSpeak = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance === 'function';
+
+  function applySettings() {
+    document.body.dataset.prereader = S.prereader ? '1' : '';
+    /* swap the reading-heavy copy for short labels, keeping the original to restore */
+    $$('[data-short]').forEach((el) => {
+      if (el.dataset.long === undefined) el.dataset.long = el.textContent;
+      el.textContent = S.prereader ? el.dataset.short : el.dataset.long;
+    });
+    $('#optPrereader').checked = S.prereader;
+    $('#optVoice').checked = S.voice && canSpeak;
+    $('#optSfx').checked = S.sfx;
+    $('#optVoice').disabled = !canSpeak;
+    $('#voiceRow').classList.toggle('off', !canSpeak);
+    $('#testVoice').hidden = !canSpeak;
+    if (!canSpeak) $('#voiceNote').textContent = 'This browser has no speech voices available, so the read-aloud option is off. The pictures carry the whole thing on their own.';
+    if (!S.voice) shush();
+  }
+
+  /* ---------------- speech: short phrases, never during the rampage ----------------
+     Kids mid-meltdown are often already in sensory overload, so this is opt-in,
+     slowed down, and silent on the stomp screen by design. */
+  let voice = null;
+  function pickVoice() {
+    if (!canSpeak) return null;
+    const all = speechSynthesis.getVoices() || [];
+    const en = all.filter((v) => /^en/i.test(v.lang));
+    return en.find((v) => v.localService) || en[0] || all[0] || null;
+  }
+  if (canSpeak) {
+    voice = pickVoice();
+    speechSynthesis.addEventListener('voiceschanged', () => { voice = voice || pickVoice(); });
+  }
+  function shush() { if (canSpeak) { try { speechSynthesis.cancel(); } catch (e) {} } $$('.speaking').forEach((el) => el.classList.remove('speaking')); }
+
+  function say(text, el) {
+    if (!S.voice || !canSpeak || !text || document.hidden) return;
+    shush();
+    const u = new SpeechSynthesisUtterance(text);
+    if (voice) u.voice = voice;
+    u.rate = 0.82; u.pitch = 1.0; u.volume = 1;
+    if (el) {
+      el.classList.add('speaking');
+      const off = () => el.classList.remove('speaking');
+      u.onend = off; u.onerror = off;
+    }
+    try { speechSynthesis.speak(u); } catch (e) { /* ignore */ }
+  }
+
+  /* what gets read on arrival, per screen. s-stomp is absent on purpose. */
+  const SPOKEN = {
+    's-size':    'How big is the feeling?',
+    's-why':     'What happened?',
+    's-squeeze': 'Squeeze everything tight.',
+    's-plan':    'What would help right now?',
+  };
+
+  /* ---------------- sound effects (off by default, no assets) ---------------- */
+  let ac = null;
   function beep(freq, dur, type, gain) {
-    if (!soundOn || !ac) return;
+    if (!S.sfx) return;
+    if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; } }
     const o = ac.createOscillator(), g = ac.createGain();
     o.type = type; o.frequency.value = freq;
     g.gain.setValueAtTime(gain, ac.currentTime);
@@ -72,6 +131,51 @@
     o.connect(g).connect(ac.destination); o.start(); o.stop(ac.currentTime + dur);
   }
   const thump = () => { beep(70 + Math.random() * 40, 0.16, 'square', 0.16); };
+
+  /* ---------------- settings sheet, behind a press-and-hold ---------------- */
+  const gear = $('#gear'), sheet = $('#sheet');
+  let holdTimer = null;
+
+  function openSheet() {
+    shush();
+    sheet.hidden = false;
+    $('#optPrereader').focus();
+  }
+  function closeSheet() { sheet.hidden = true; gear.focus(); }
+
+  function startHold() {
+    gear.classList.add('holding');
+    holdTimer = setTimeout(() => { gear.classList.remove('holding'); openSheet(); }, 1200);
+  }
+  function cancelHold() {
+    gear.classList.remove('holding');
+    if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
+  }
+  gear.addEventListener('pointerdown', startHold);
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) => gear.addEventListener(ev, cancelHold));
+  /* keyboard users get it on plain activation — the hold only exists to stop small fingers */
+  gear.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSheet(); } });
+
+  $('#openSettings').addEventListener('click', openSheet);
+  $('#sheetClose').addEventListener('click', closeSheet);
+  sheet.addEventListener('click', (e) => { if (e.target === sheet) closeSheet(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !sheet.hidden) closeSheet(); });
+
+  $('#optPrereader').addEventListener('change', (e) => {
+    S.prereader = e.target.checked;
+    /* a pre-reader is the case the voice is for, so turn it on with them — still separable */
+    if (S.prereader && canSpeak && !S.voice) S.voice = true;
+    saveSettings(); applySettings();
+  });
+  $('#optVoice').addEventListener('change', (e) => {
+    S.voice = e.target.checked; saveSettings(); applySettings();
+    if (S.voice) say('Hello. I will read things out loud.');   // primes the voice on a real gesture
+  });
+  $('#optSfx').addEventListener('change', (e) => { S.sfx = e.target.checked; saveSettings(); thump(); });
+  $('#testVoice').addEventListener('click', () => {
+    if (!S.voice) { S.voice = true; saveSettings(); applySettings(); }
+    say('Breathe in. And breathe out. Nice and slow.');
+  });
 
   /* ---------------- 1. how big is it ---------------- */
   $$('[data-size]').forEach((el) => el.addEventListener('click', () => {
@@ -165,30 +269,50 @@
 
   /* ---------------- 4. paced breathing ---------------- */
   const ring = $('#breathRing'), word = $('#breathWord'), rounds = $('#breathRounds');
+  const arrow = $('#breathArrow');
   const ease = (t) => 0.5 - Math.cos(Math.PI * t) / 2;
+  /* one row per phase: the long label, the pre-reader label, a wordless arrow, and
+     what the voice says (silence on the hold — a cue there just adds noise) */
+  const BREATH = {
+    in:   { long: 'Breathe in…',  short: 'IN',   arrow: '⬆', say: 'Breathe in' },
+    hold: { long: 'Hold',         short: 'HOLD', arrow: '✋', say: '' },
+    out:  { long: 'Breathe out…', short: 'OUT',  arrow: '⬇', say: 'Breathe out' },
+  };
 
   function runBreathe() {
     const mine = token;
     const cycle = IN_MS + HOLD_MS + OUT_MS;
     /* elapsed accumulates clamped frame deltas rather than wall-clock, so backgrounding
        the tab pauses the pacer instead of skipping the kid past several breaths. */
-    let elapsed = -700, prev = performance.now();
+    let elapsed = -1200, prev = performance.now(), phase = null;
+    /* show the first cue straight away rather than an unreadable "Ready…" -- phase
+       stays null, so the real transition still speaks when the timeline starts */
+    word.textContent = S.prereader ? BREATH.in.short : BREATH.in.long;
+    arrow.textContent = BREATH.in.arrow;
+    ring.style.transform = 'scale(0.62)';
 
     (function tick(now) {
       if (token !== mine) return;
       elapsed += Math.min(120, now - prev);
       prev = now;
-      if (elapsed < 0) { requestAnimationFrame(tick); return; }
+      if (elapsed < 0) { requestAnimationFrame(tick); return; }   /* 1.2s settle before breath 1 */
       const n = Math.floor(elapsed / cycle);
       if (n >= BREATHS) { show('s-squeeze'); return; }
       const t = elapsed % cycle;
-      let scale, label;
-      if (t < IN_MS)                { scale = 0.62 + 0.38 * ease(t / IN_MS);                 label = 'Breathe in…'; }
-      else if (t < IN_MS + HOLD_MS) { scale = 1;                                             label = 'Hold'; }
-      else                          { scale = 1 - 0.38 * ease((t - IN_MS - HOLD_MS) / OUT_MS); label = 'Breathe out…'; }
+      let scale, key;
+      if (t < IN_MS)                { scale = 0.62 + 0.38 * ease(t / IN_MS);                  key = 'in'; }
+      else if (t < IN_MS + HOLD_MS) { scale = 1;                                              key = 'hold'; }
+      else                          { scale = 1 - 0.38 * ease((t - IN_MS - HOLD_MS) / OUT_MS); key = 'out'; }
       ring.style.transform = 'scale(' + scale.toFixed(3) + ')';
       belly.style.transform = 'scale(' + (0.9 + (scale - 0.62) * 0.42).toFixed(3) + ')';
-      if (word.textContent !== label) { word.textContent = label; beep(label === 'Breathe in…' ? 330 : 220, 0.5, 'sine', 0.05); }
+      if (phase !== key) {
+        phase = key;
+        const b = BREATH[key];
+        word.textContent = S.prereader ? b.short : b.long;
+        arrow.textContent = b.arrow;
+        beep(key === 'in' ? 330 : 220, 0.5, 'sine', 0.05);
+        say(b.say);
+      }
       const r = 'Breath ' + (n + 1) + ' of ' + BREATHS;
       if (rounds.textContent !== r) rounds.textContent = r;
       requestAnimationFrame(tick);
@@ -205,12 +329,14 @@
       if (token !== mine) return;
       if (n >= SQUEEZES) { show('s-plan'); return; }
       sqRounds.textContent = 'Squeeze ' + (n + 1) + ' of ' + SQUEEZES;
-      sqAsk.textContent = 'Squeeze everything tight!';
+      sqAsk.textContent = S.prereader ? 'Squeeze!' : 'Squeeze everything tight!';
       orb.className = 'squeeze-orb tight';
+      if (n > 0) say('Squeeze tight');
       later(() => {
         if (token !== mine) return;
-        sqAsk.textContent = 'Now let it all flop…';
+        sqAsk.textContent = S.prereader ? 'Flop!' : 'Now let it all flop…';
         orb.className = 'squeeze-orb loose';
+        say('And let it flop');
         later(() => { n++; phase(); }, LOOSE_MS);
       }, TIGHT_MS);
     })();
@@ -255,6 +381,7 @@
     const note = WHY_NOTE[state.why];
     $('#donePlan').textContent = (PLAN[state.plan] || 'You brought it all the way down.') + (note ? ' ' + note : '');
     $('#badgeCount').textContent = n;
+    later(() => say($('#donePlan').textContent, $('#donePlan')), 500);
     beep(520, 0.18, 'sine', 0.1);
     later(() => beep(780, 0.3, 'sine', 0.09), 170);
   }
@@ -263,6 +390,7 @@
   $('#oneMore').addEventListener('click', () => show('s-size'));
   $$('[data-go]').forEach((el) => el.addEventListener('click', () => show(el.dataset.go)));
 
+  applySettings();
   $('#badgeCount').textContent = readCount();
   show('s-start');
 })();
