@@ -134,7 +134,11 @@
 
   <section class="screen screen-read" id="s-grownups">
     <h2 class="ask">For grown‑ups</h2>
-    <div class="prose">
+    <!-- tabindex, because this pane scrolls: it is capped at 60vh, and
+         without this the text past the fold is reachable by mouse and by
+         nothing else. It is also the only place the reasoning behind this
+         app is written down. -->
+    <div class="prose" tabindex="0">
       <p><strong>This is not a rage room.</strong> "Venting" anger is one of the most reliably
       disproven ideas in psychology — hitting something while stewing about who upset you tends to
       leave people <em>angrier</em> and more aggressive than doing nothing at all.</p>
